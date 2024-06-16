@@ -12,41 +12,22 @@ import json
 app = Flask(__name__)
 interactions = Interactions(app, os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39"), os.getenv("1250512173491294259"))
 
-PUBLIC_KEY = os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39")
+ 
+@csrf_exempt
+def discord_endpoint(request):
 
-# Verify Discord request
-# Verify Discord request
-def verify_request(req):
+    verify_key = VerifyKey(bytes.fromhex('0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39'))
+
+    signature = request.headers["X-Signature-Ed25519"]
+    timestamp = request.headers["X-Signature-Timestamp"]
+    body = request.body.decode("utf-8")
+
     try:
-        signature = req.headers['X-Signature-Ed25519']
-        timestamp = req.headers['X-Signature-Timestamp']
-        body = req.data.decode('utf-8')
-        message = timestamp + body
-        verify_key = VerifyKey(bytes.fromhex(PUBLIC_KEY))
-        verify_key.verify(message.encode(), bytes.fromhex(signature))
-    except (BadSignatureError, KeyError) as e:
-        logging.error(f"Request verification failed: {e}")
-        return False
-    return True
-
-@app.route('/', methods=['POST'])
-def index():
-    logging.info("Received a request")
-    if not verify_request(request):
-        logging.warning("Invalid request signature")
-        return jsonify({"error": "Invalid request signature"}), 401
-    
-    data = request.json
-    logging.debug(f"Request data: {data}")
-    if data['type'] == 1:  # PING request
-        logging.info("Responding to PING request")
-        return "pong"
-    
-    # Handle other interaction types
-    # Here you can handle your command logic
-
-    logging.error("Unknown interaction type")
-    return jsonify({"error": "Unknown interaction type"}), 400
+        verify_key.verify(f'{timestamp}{body}'.encode(), bytes.fromhex(signature))
+        return JsonResponse({'type':1})
+    except BadSignatureError:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+ 
     
 
 @interactions.command
