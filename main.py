@@ -13,22 +13,6 @@ app = Flask(__name__)
 interactions = Interactions(app, os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39"), os.getenv("1250512173491294259"))
 
  
-@csrf_exempt
-def discord_endpoint(request):
-
-    verify_key = VerifyKey(bytes.fromhex('0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39'))
-
-    signature = request.headers["X-Signature-Ed25519"]
-    timestamp = request.headers["X-Signature-Timestamp"]
-    body = request.body.decode("utf-8")
-
-    try:
-        verify_key.verify(f'{timestamp}{body}'.encode(), bytes.fromhex(signature))
-        return JsonResponse({'type':1})
-    except BadSignatureError:
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
- 
-    
 
 @interactions.command
 def ping(_: Ping):
