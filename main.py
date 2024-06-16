@@ -145,4 +145,4 @@ def user_info(cmd: UserInfo):
 
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", os.getenv("PORT", 80))  # PORT will be set by Cloud Run
+    app.run("0.0.0.0", os.getenv("PORT", 5000))  # PORT will be set by Cloud Run
