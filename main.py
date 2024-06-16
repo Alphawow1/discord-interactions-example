@@ -1,29 +1,5 @@
 #!/usr/bin/env python
 
-"""
-MIT License
-
-Copyright (c) 2020-2021 Linus Bartsch
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
 from discord_interactions.flask_ext import Interactions, CommandContext, AfterCommandContext
 from discord_interactions import Member
 from flask import Flask
@@ -34,25 +10,23 @@ import time
 import json
 
 app = Flask(__name__)
- 
+interactions = Interactions(app, os.getenv("DISCORD_PUBLIC_KEY"), os.getenv("DISCORD_APPLICATION_ID"))
 
-interactions = Interactions(app, os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39"), os.getenv("1250512173491294259"))
-
+@app.route('/', methods=['GET'])
+def index():
+    return "Hello, World!"
 
 @interactions.command
 def ping(_: Ping):
     return "pong"
 
-
 @interactions.command
 def echo(cmd: Echo):
     return cmd.message, False
 
-
 @interactions.command
 def rps(cmd: RPS):
     choice = random.choice(list(RPSSymbol))
-
     if cmd.symbol == choice:
         msg = "It's a draw!"
     elif cmd.symbol == RPSSymbol.ROCK:
@@ -70,29 +44,22 @@ def rps(cmd: RPS):
             msg = "You get crushed and lose!"
         else:
             msg = "You cut me and win!"
-
     return f"I took {choice.value}. {msg}"
-
 
 @interactions.command(Guess)
 def guess(_: CommandContext, guessed_num, min_num=None, max_num=None):
-    min_val = min_num or 0  # defaults to 0
-    max_val = max_num or 10  # defaults to 10
-
+    min_val = min_num or 0
+    max_val = max_num or 10
     my_number = random.randint(min_val, max_val)
-
     if my_number == guessed_num:
         msg = "You are correct! :tada:"
     else:
         msg = "You guessed it wrong. :confused:"
-
     return f"My number was {my_number}. {msg}"
-
 
 @interactions.command(Delay)
 def delay(_):
-    return None  # deferred response
-
+    return None
 
 @delay.after_command
 def after_delay(ctx: AfterCommandContext):
@@ -100,17 +67,14 @@ def after_delay(ctx: AfterCommandContext):
     time.sleep(delay_time)
     ctx.edit_original(f"{delay_time} seconds have passed")
 
-
 @interactions.command
 def hug(cmd: Hug):
     return f"<@{cmd.interaction.author.id}> *hugs* <@{cmd.cutie}>"
-
 
 @interactions.command
 def user_info(cmd: UserInfo):
     u_id = cmd.user
     if u_id:
-        # get resolved member/user data by id
         member = cmd.interaction.get_member(u_id)
         user = cmd.interaction.get_user(u_id)
         if member:
@@ -118,31 +82,18 @@ def user_info(cmd: UserInfo):
             user = member
     else:
         user = cmd.author
-
     if cmd.raw:
-        return f"```json\n{json.dumps(user.to_dict(), indent=2)}\n```", True  # ephemeral
-
+        return f"```json\n{json.dumps(user.to_dict(), indent=2)}\n```", True
     info = ""
-
     if isinstance(user, Member):
         role_info = " ".join(f"<@&{r}>" for r in user.roles)
-        info += f"**Member**\nnick: `{user.nick}`\nroles: {role_info}\n" \
-                f"joined at: `{user.joined_at.isoformat()}`\n"
-
+        info += f"**Member**\nnick: `{user.nick}`\nroles: {role_info}\njoined at: `{user.joined_at.isoformat()}`\n"
         if user.premium_since:
             info += f"premium since: `{user.premium_since.isoformat()}`\n"
-
-        info += f"deaf: `{user.deaf}`\nmute: `{user.mute}`\npending: `{user.pending}`" \
-                f"\n\n"
-
+        info += f"deaf: `{user.deaf}`\nmute: `{user.mute}`\npending: `{user.pending}`\n\n"
         user = user.user
-
-    info += f"**User**\nid: `{user.id}`\nusername: `{user.username}`\n" \
-            f"discriminator: `{user.discriminator}`\navatar: `{user.avatar}`\n" \
-            f"public flags: {', '.join(f'`{f.name}`' for f in user.public_flags)}"
-
-    return info, True  # ephemeral
-
+    info += f"**User**\nid: `{user.id}`\nusername: `{user.username}`\ndiscriminator: `{user.discriminator}`\navatar: `{user.avatar}`\npublic flags: {', '.join(f'`{f.name}`' for f in user.public_flags)}"
+    return info, True
 
 if __name__ == "__main__":
-    app.run("0.0.0.0", os.getenv("PORT", 5000))  # PORT will be set by Cloud Run
+    app.run("0.0.0.0", port=int(os.getenv("PORT", 5000)))
