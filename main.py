@@ -34,8 +34,7 @@ import time
 import json
 
 app = Flask(__name__)
-
-@app.route('/', methods=['POST'])
+ 
 
 interactions = Interactions(app, os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39"), os.getenv("1250512173491294259"))
 
