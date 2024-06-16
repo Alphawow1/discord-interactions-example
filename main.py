@@ -27,7 +27,7 @@ def verify_request(request):
         return False
     return True
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['GET'])
 def index():
     if not verify_request(request):
         return jsonify({"error": "Invalid request signature"}), 401
