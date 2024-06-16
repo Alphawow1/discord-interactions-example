@@ -15,32 +15,39 @@ interactions = Interactions(app, os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80
 PUBLIC_KEY = os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39")
 
 # Verify Discord request
-@app.route('/', methods=['GET'])
-def verify_request(request):
+# Verify Discord request
+def verify_request(req):
     try:
-        signature = request.headers['X-Signature-Ed25519']
-        timestamp = request.headers['X-Signature-Timestamp']
-        body = request.data.decode('utf-8')
+        signature = req.headers['X-Signature-Ed25519']
+        timestamp = req.headers['X-Signature-Timestamp']
+        body = req.data.decode('utf-8')
         message = timestamp + body
         verify_key = VerifyKey(bytes.fromhex(PUBLIC_KEY))
         verify_key.verify(message.encode(), bytes.fromhex(signature))
-    except (BadSignatureError, KeyError):
+    except (BadSignatureError, KeyError) as e:
+        logging.error(f"Request verification failed: {e}")
         return False
     return True
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['POST'])
 def index():
+    logging.info("Received a request")
     if not verify_request(request):
+        logging.warning("Invalid request signature")
         return jsonify({"error": "Invalid request signature"}), 401
     
     data = request.json
+    logging.debug(f"Request data: {data}")
     if data['type'] == 1:  # PING request
+        logging.info("Responding to PING request")
         return jsonify({"type": 1})
     
     # Handle other interaction types
     # Here you can handle your command logic
 
+    logging.error("Unknown interaction type")
     return jsonify({"error": "Unknown interaction type"}), 400
+    
 
 @interactions.command
 def ping(_: Ping):
