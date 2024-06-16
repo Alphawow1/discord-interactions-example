@@ -40,7 +40,7 @@ def index():
     logging.debug(f"Request data: {data}")
     if data['type'] == 1:  # PING request
         logging.info("Responding to PING request")
-        return jsonify({"type": 1})
+        return "pong"
     
     # Handle other interaction types
     # Here you can handle your command logic
