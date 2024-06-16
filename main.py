@@ -12,9 +12,34 @@ import json
 app = Flask(__name__)
 interactions = Interactions(app, os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39"), os.getenv("1250512173491294259"))
 
-@app.route('/', methods=['GET'])
+PUBLIC_KEY = os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39")
+
+# Verify Discord request
+def verify_request(request):
+    try:
+        signature = request.headers['X-Signature-Ed25519']
+        timestamp = request.headers['X-Signature-Timestamp']
+        body = request.data.decode('utf-8')
+        message = timestamp + body
+        verify_key = VerifyKey(bytes.fromhex(PUBLIC_KEY))
+        verify_key.verify(message.encode(), bytes.fromhex(signature))
+    except (BadSignatureError, KeyError):
+        return False
+    return True
+
+@app.route('/', methods=['POST'])
 def index():
-    return "Hello, World!"
+    if not verify_request(request):
+        return jsonify({"error": "Invalid request signature"}), 401
+    
+    data = request.json
+    if data['type'] == 1:  # PING request
+        return jsonify({"type": 1})
+    
+    # Handle other interaction types
+    # Here you can handle your command logic
+
+    return jsonify({"error": "Unknown interaction type"}), 400
 
 @interactions.command
 def ping(_: Ping):
