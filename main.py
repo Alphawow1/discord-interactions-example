@@ -15,6 +15,7 @@ interactions = Interactions(app, os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80
 PUBLIC_KEY = os.getenv("0f8ab6334fbbe0ec9ee562fd5a43ea1e8a80e8b52cc7734037897ea3b09e9d39")
 
 # Verify Discord request
+@app.route('/', methods=['GET'])
 def verify_request(request):
     try:
         signature = request.headers['X-Signature-Ed25519']
