@@ -30,7 +30,7 @@ import os
 from main import interactions
 
 if __name__ == "__main__":
-    client = ApplicationClient(os.getenv("MTI1MDUxMjE3MzQ5MTI5NDI1OQ.GEbG0F.5hmvvjiLu35sizWOnPuF4A-1RUkaAGLKXbpd9c"))
+    client = ApplicationClient(os.getenv("MTI1MDUxMjE3MzQ5MTI5NDI1OQ.GcO0Bh.i_OPaC7_qV39x6WDGCRY8ACpcI-h12KbOfKDQw"))
 
     # You might specify a guild here.
     # Global commands can take up to one hour to be available after registration.
